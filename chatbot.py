@@ -42,7 +42,7 @@ def chat_with_gpt(user_input):
     elif "how old are you" in user_input.lower():
         return f"I am {current_scenario['age']} years old."
     
-    messages = conversation_history + [{"role": "system", "content": f"You are a patient named {current_scenario['name']} who is {current_scenario['age']} years old with {current_scenario['condition']}. Your initial symptom is '{current_scenario['initial_symptom']}'. You will respond to questions with information relevant to your condition as if you are explaining your symptoms to a healthcare professional for the first time."}]
+    messages = conversation_history + [{"role": "system", "content": f"You are a patient named {current_scenario['name']} who is {current_scenario['age']} years old with {current_scenario['condition']}. Your initial symptom is '{current_scenario['initial_symptom']}'. You will respond to questions with information relevant to your condition as if you are explaining your symptoms to a healthcare professional for the first time. If the user inputs a message not related to health conditiions or personal information, just respond 'I don't understand, could you repeat yourself'."}]
     
     response = client.chat.completions.create(
         model="gpt-3.5-turbo",
