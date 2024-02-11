@@ -28,38 +28,51 @@ def generate_personal_info():
     age = random.randint(5, 90)
     return name, age
 
-current_scenario = random.choice(health_scenarios)
-current_scenario['name'], current_scenario['age'] = generate_personal_info()
+conversations = {}
 
-conversation_history = []
+def start_new_conversation():
+    conversation_id = len(conversations) + 1
+    name, age = generate_personal_info()
+    scenario = random.choice(health_scenarios)
+    initial_prompt = f"You are a patient named {name} who is {age} years old with {scenario['condition']}. Your initial symptom is '{scenario['initial_symptom']}'."
+    
+    conversations[conversation_id] = {
+        "scenario": scenario,
+        "name": name,
+        "age": age,
+        "messages": [{"role": "system", "content": initial_prompt}]
+    }
+    return conversation_id
 
-def chat_with_gpt(user_input):
-    global current_scenario, conversation_history
-    conversation_history.append({"role": "user", "content": user_input})
+def chat_with_gpt(user_input, conversation_id):
+    conversation = conversations[conversation_id]
     
     if "your name" in user_input.lower():
-        return f"My name is {current_scenario['name']}."
+        response_text = f"My name is {conversation['name']}."
     elif "how old are you" in user_input.lower():
-        return f"I am {current_scenario['age']} years old."
-    
-    messages = conversation_history + [{"role": "system", "content": f"You are a patient named {current_scenario['name']} who is {current_scenario['age']} years old with {current_scenario['condition']}. Your initial symptom is '{current_scenario['initial_symptom']}'. You will respond to questions with information relevant to your condition as if you are explaining your symptoms to a healthcare professional for the first time. If the user inputs a message not related to health conditiions or personal information, just respond 'I don't understand, could you repeat yourself'."}]
-    
-    response = client.chat.completions.create(
-        model="gpt-3.5-turbo",
-        messages=messages
-    )
-    
-    response_text = response.choices[0].message.content.strip()
-    conversation_history.append({"role": "assistant", "content": response_text})
+        response_text = f"I am {conversation['age']} years old."
+    else:
+        conversation['messages'].append({"role": "user", "content": user_input})
+        
+        messages = conversation['messages']
+        
+        response = client.chat.completions.create(
+            model="gpt-3.5-turbo",
+            messages=messages
+        )
+        
+        response_text = response.choices[0].message.content.strip()
+        conversation['messages'].append({"role": "assistant", "content": response_text})
     
     return response_text
 
 if __name__ == "__main__":
     print("Chatbot: Hello, I'm here to help you practice. What would you like to know?")
+    current_conversation_id = start_new_conversation()
     while True:
         user_input = input("You: ")
         if user_input.lower() in ["quit", "exit", "bye"]:
             break
         
-        response = chat_with_gpt(user_input)
+        response = chat_with_gpt(user_input, current_conversation_id)
         print(f"Chatbot: {response}")
