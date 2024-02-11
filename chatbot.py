@@ -1,7 +1,8 @@
 from openai import OpenAI
 import random
+import os
 
-client = OpenAI(api_key="")
+client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
 health_scenarios =[
     {"condition": "asthma", "initial_symptom": "shortness of breath and wheezing after exercise"},
